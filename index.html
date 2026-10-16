@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OCR Test</title>
+  <style>
+    body { margin: 0; padding: 12px; font-family: system-ui, sans-serif; background: #f5f5f7; }
+    main { max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 1.2rem; margin: .2rem 0 .8rem; }
+    .opts { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem; font-size: .9rem; }
+    pre { background: #fff; padding: .6rem; border-radius: 8px; font-size: .75rem;
+          max-height: 10rem; overflow: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>OCR-Scanner</h1>
+  <div class="opts">
+    <label>Sprache
+      <select id="lang"><option value="deu">Deutsch</option><option value="eng">Englisch</option>
+        <option value="deu+eng">Deutsch + Englisch</option></select>
+    </label>
+    <label><input type="checkbox" id="frame"> Nur Ausschnitt</label>
+  </div>
+
+  <ocr-scanner id="scanner" lang="deu"></ocr-scanner>
+
+  <h2 style="font-size:.9rem">Event-Log</h2>
+  <pre id="log"></pre>
+</main>
+
+<script type="module">
+  import './src/ocr-scanner.js';
+
+  const scanner = document.getElementById('scanner');
+  const log = document.getElementById('log');
+  const add = (n, d) => { log.textContent = `${n} ${JSON.stringify(d).slice(0, 200)}\n` + log.textContent; };
+
+  for (const ev of ['ocr-ready', 'ocr-result', 'ocr-accept', 'ocr-error'])
+    scanner.addEventListener(ev, (e) => add(ev, e.detail.error?.message ?? e.detail));
+
+  document.getElementById('frame').onchange = (e) => scanner.toggleAttribute('frame', e.target.checked);
+  document.getElementById('lang').onchange = (e) => {
+    scanner.setAttribute('lang', e.target.value);
+    scanner.engine?.terminate(); scanner.engine = null; // nächste Erkennung lädt neue Sprache
+  };
+</script>
+</body>
+</html>
